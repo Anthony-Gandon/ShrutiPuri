@@ -22,7 +22,7 @@ class compute_Wigner:
         
     def draw_Wigner(self,res):
         for ii in range(self.n_t):
-            if ii%self.spacing==0 and ii//self.spacing<self.nbWigner:
+            if ii%self.spacing==0 and ii//self.spacing<self.nbWigner+1:
                 if (self.syst<=-1): # Only one Cat
                     wig = qt.wigner(res.states[ii], self.space_size, self.space_size, g=2)
                 else: # Two cats or more
