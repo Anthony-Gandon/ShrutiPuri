@@ -30,10 +30,22 @@ C_alpha_plus = C_alpha_plus/C_alpha_plus.norm()
 C_alpha_minus = qt.coherent(Na, alpha)-qt.coherent(Na, -alpha)
 C_alpha_minus = C_alpha_minus/C_alpha_minus.norm()
 
+#Hamiltonian and collapses operators
+H=0*a #the dynamics is in cops
 
-def coef_alpha(t):
+def coef_alpha(t,args):
     return(alpha_inf_abs*np.exp(1j*delta*t))
 
 cops = [k1**0.5*a,
-        k2**0.5*(a**2),[k2**0.5*Ia,coef_alpha]
+        k2**0.5*(a**2),[-k2**0.5*Ia,coef_alpha]
         ]
+
+
+
+# Resolution 
+n_t = 101
+T= 2*np.pi *delta #total time of simulation
+tlist = np.linspace(0, T, n_t)
+res = qt.mesolve(H, C_alpha_plus, tlist, cops_1,progress_bar=TextProgressBar())
+#print("solved")
+#http://qutip.org/docs/latest/guide/dynamics/dynamics-time.html
