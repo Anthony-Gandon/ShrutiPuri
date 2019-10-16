@@ -14,7 +14,7 @@ class compute_Wigner:
     def __init__(self, space_size, nbWigner, tempsSimul, syst):
         self.space_size = np.linspace(space_size[0],space_size[1],space_size[2])
         self.nbWigner = nbWigner
-        (self.fig,self.axes) = plt.subplots(2,5,figsize=(12,8))
+        (self.fig,self.axes) = plt.subplots((nbWigner+1)//5,5,figsize=(12,8))
         self.listeWigner = []
         self.n_t = tempsSimul
         self.syst = syst # -1 for 1 cat and k to identify when there are more than k+1 cats
