@@ -15,11 +15,14 @@ from compute_Wigner_class import compute_Wigner
 
 "Parameters"
 Na=20 # Truncature
+Nb = 20
 k1 = 0 # single-photon loss rate
 k2 = 1 # k2 comes from the combination of g2 and kb
-alpha_inf_abs= 2 #alpha stationnary
-delta = k2/1 #speed rate of the rotating pumping
+alpha_inf= 3 #alpha stationnary
+beta_inf = 3
+delta = k2/10 #speed rate of the rotating pumping
 alpha= 2
+beta = 2
 
 T=np.pi /delta 
 tau=T/5
@@ -36,6 +39,14 @@ choice = 1
 Ia = qt.identity(Na) # identity
 a = qt.destroy(Na) # lowering operator
 n_a = a.dag()*a # photon number
+Ib = qt.identity(Nb) # identity
+b = qt.destroy(Nb) # lowering operator
+n_b = b.dag()*b # photon number*
+
+Iab=qt.tensor(Ia,Ib)
+A = qt.tensor(a,Ib)
+B = qt.tensor(Ia,b)
+
 
 eps_2=alpha_inf_abs**2*k2/2 #cf Mirrahimi NJP 2014
 
@@ -46,45 +57,25 @@ C_alpha_plus = C_alpha_plus/C_alpha_plus.norm()
 C_alpha_minus = qt.coherent(Na, alpha)-qt.coherent(Na, -alpha)
 C_alpha_minus = C_alpha_minus/C_alpha_minus.norm()
 
-"2 functions for the strength of the drive"
-def smooth_slot(t,t1=T1,t2=T2,tau1=tau):
-    res=0
-    if t<=t1-tau1/2 or t>=t2+tau1/2:
-        res=0
-    elif t>=t1+tau1/2 and t<=t2-tau1/2:
-        res=1
-    elif t>t1-tau1/2 and t<t1+tau1/2 :
-        res=1./2*np.sin((t-t1)/tau1*np.pi) +1./2
-    elif t>t2-tau1/2 and t<t2+tau1/2 :
-        res=1./2*np.sin((t2-t)/tau1*np.pi)+1./2
-    return(res)
-    
-def slot(t,t1=T1,t2=T2):
-    res = 0
-    if (t>=t1 and t<=t2):
-        res = 1
-    return res
+C_beta_plus = qt.coherent(Nb, beta)+qt.coherent(Nb, -beta)
+C_beta_plus = C_beta_plus/C_beta_plus.norm()
+C_beta_moins = qt.coherent(Nb, beta)-qt.coherent(Nb, -beta)
+C_beta_moins = C_beta_moins/C_beta_moins.norm()
 
-def drive_choice(t):
-    return (1-choice)*slot(t)+choice*smooth_slot(t)
 
 time=np.linspace(0,10,1001)
-res_list=[smooth_slot(1,9,1/2,t) for t in time]
-fig, axs= plt.subplots()
-axs.plot(time, res_list, '+')  
+
 
 "Calculates the coefficient of the hamiltonian time-dependant terms"
-def coef_eps(t,args):
-    res=-1j*eps_2*alpha_inf_abs/np.abs(alpha_inf_abs)
-    return res*np.exp(1j*2*delta*integrate.quad(drive_choice,0,t)[0])
-    
-def coef_eps_conj(t,args):
-    return(np.conjugate(coef_eps(t,args)))
- 
+def time_dependant_c_ops(t,args):
+    return B**2-1/2*alpha*(A+alpha)+1/2*alpha*np.exp(2j*np.pi/T*t)*(A-alpha)
 
-H=[[a**2,coef_eps],[a.dag()**2, coef_eps_conj]]
+
+H=0*A
+
 #H=-1j*(a**2*eps_2-a.dag()**2*np.conjugate(eps_2))
-cops=[k1*a,k2**0.5*a**2]
+cops=[k2**0.5*(A**2-alpha**2),
+      time_dependant_c_ops]
 
 "Resolution of the equation over time with mesolve"
 init_state= C_alpha_plus #initial state

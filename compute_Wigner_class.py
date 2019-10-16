@@ -11,10 +11,11 @@ import matplotlib.pyplot as plt
 plt.close('all')
 
 class compute_Wigner:
-    def __init__(self, space_size, nbWigner, tempsSimul, syst):
+    def __init__(self, space_size, nbWigner,nbCols, tempsSimul, syst):
         self.space_size = np.linspace(space_size[0],space_size[1],space_size[2])
         self.nbWigner = nbWigner
-        (self.fig,self.axes) = plt.subplots((nbWigner+1)//5,5,figsize=(12,8))
+        self.nbCols= nbCols
+        (self.fig,self.axes) = plt.subplots((nbWigner+1)//nbCols,nbCols,figsize=(12,8))
         self.listeWigner = []
         self.n_t = tempsSimul
         self.syst = syst # -1 for 1 cat and k to identify when there are more than k+1 cats
@@ -29,5 +30,5 @@ class compute_Wigner:
                     wig = qt.wigner(res.states[ii].ptrace(self.syst), self.space_size, self.space_size, g=2)
                 self.listeWigner.append(wig)
         for ii in range(len(self.listeWigner)):
-            self.axes[ii//5, ii%5].pcolor(self.space_size, self.space_size, self.listeWigner[ii], cmap='bwr', vmin=[-2/np.pi, 2/np.pi])
-            self.axes[ii//5, ii%5].set_aspect('equal')
+            self.axes[ii//self.nbCols, ii%self.nbCols].pcolor(self.space_size, self.space_size, self.listeWigner[ii], cmap='bwr', vmin=[-2/np.pi, 2/np.pi])
+            self.axes[ii//self.nbCols, ii%self.nbCols].set_aspect('equal')
