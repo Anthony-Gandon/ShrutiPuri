@@ -32,6 +32,8 @@ psi_plus = psi_plus/psi_plus.norm() # even cat /!\ normalisation
 
 def dissipative_operator(t, args):
     return k2**0.5*(a**2-(alpha*np.exp(1j*np.pi*t/T_gate))**2)
+def time_dependant_cops(i):
+    return k2**0.5*(a**2-(alpha*np.exp(1j*np.pi*i/n_t))**2)
 
 H = 0*a
 
@@ -45,11 +47,23 @@ eops = [parity_a,
         ]
 c_ops = []
 
+list_tlist = []
+list_states_init = [psi_plus]
 tlist = np.linspace(0, T_gate, n_t)
-res = qt.mesolve(dissipative_operator, psi_plus, tlist, c_ops,progress_bar=TextProgressBar())
+res = []
+test_Wigner_i = compute_Wigner([-4, 4, 51], 10, n_t,-1)
 
-test_Wigner = compute_Wigner([-4, 4, 51], 10, n_t,-1)
-test_Wigner.draw_Wigner(res)
+for i in range(10):
+    tlist_i = tlist[i*T_gate//10: (i+1)*T_gate//10]
+    c_ops_i = time_dependant_cops(i)
+    psi_i = list_states_init[-1]
+    res_i = qt.mesolve(H, psi_i, tlist_i, c_ops_i, progress_bar=TextProgressBar())
+    res.append(res_i)
+    test_Wigner_i.draw_1_Wigner(res_i,i//2,i%2)
+
+#res = qt.mesolve(H, psi_plus, tlist, c_ops,progress_bar=TextProgressBar())
+
+
 number_t = []
 for ii, t in enumerate(tlist):
     number_t.append(qt.expect(n_a, res.states[ii]))
