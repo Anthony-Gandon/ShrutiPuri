@@ -46,6 +46,9 @@ C_alpha_plus = C_alpha_plus/C_alpha_plus.norm()
 C_alpha_minus = qt.coherent(Na, alpha)-qt.coherent(Na, -alpha)
 C_alpha_minus = C_alpha_minus/C_alpha_minus.norm()
 
+C_y_alpha=qt.coherent(Na,alpha)+ 1j* qt.coherent(Na, -alpha)
+C_y_alpha=C_y_alpha/C_y_alpha.norm()
+
 "2 functions for the strength of the drive"
 def smooth_slot(t,t1=T1,t2=T2,tau1=tau):
     res=0
@@ -87,7 +90,7 @@ H=[[a**2,coef_eps],[a.dag()**2, coef_eps_conj]]
 cops=[k1*a,k2**0.5*a**2]
 
 "Resolution of the equation over time with mesolve"
-init_state= C_alpha_plus #initial state
+init_state= C_y_alpha#initial state
 n_t = 1001
 T=np.pi /delta #total time of simulation
 tlist = np.linspace(0, 2*T, n_t)
@@ -98,17 +101,19 @@ test_Wigner = compute_Wigner([-4, 4, 51], nbWignerPlot,nbCols, n_t,-1)
 test_Wigner.draw_Wigner(res)
 
 "Plot the evolution of fidelity over time"
+
 fidelity_list=[]
+final_state=(1j*np.pi*a.dag()*a).expm()*init_state #for rotation of speed angle T 
 for ii,t in enumerate(tlist):
-    if t<T/2:
-        fidelity_list.append(qt.fidelity(res.states[ii],C_alpha_plus))
-    elif t>3*T/2:
-        fidelity_list.append(qt.fidelity(res.states[ii],C_alpha_plus))
+    if t<T1:
+        fidelity_list.append(qt.fidelity(res.states[ii],init_state))
+    elif t>T2:
+        fidelity_list.append(qt.fidelity(res.states[ii],final_state))
     else:
-        theta=np.exp(-1j*delta*(t-T/2))
-        C_alpha_plus_rot=qt.coherent(Na, alpha*theta)+qt.coherent(Na, -alpha*theta)
-        C_alpha_plus_rot=C_alpha_plus_rot/C_alpha_plus_rot.norm()
-        fidelity_list.append(qt.fidelity(res.states[ii],C_alpha_plus_rot))
+        theta=delta*(t-T1)
+        init_state_rot=(-1j*theta*a.dag()*a).expm()*init_state
+        init_state_rot=init_state_rot/init_state_rot.norm()
+        fidelity_list.append(qt.fidelity(res.states[ii],init_state_rot))
  
 fig,axs= plt.subplots()
 axs.plot(tlist,fidelity_list)
