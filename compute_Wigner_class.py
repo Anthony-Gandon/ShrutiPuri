@@ -21,13 +21,13 @@ class compute_Wigner:
         self.syst = syst # -1 for 1 cat and k to identify when there are more than k+1 cats
         self.spacing = tempsSimul//nbWigner
         
-    def draw_Wigner(self,res):
+    def draw_Wigner(self,list_states):
         for ii in range(self.n_t):
             if ii%self.spacing==0 and ii//self.spacing<self.nbWigner+1:
                 if (self.syst<=-1): # Only one Cat
-                    wig = qt.wigner(res.states[ii], self.space_size, self.space_size, g=2)
+                    wig = qt.wigner(list_states[ii], self.space_size, self.space_size, g=2)
                 else: # Two cats or more
-                    wig = qt.wigner(res.states[ii].ptrace(self.syst), self.space_size, self.space_size, g=2)
+                    wig = qt.wigner(list_states[ii].ptrace(self.syst), self.space_size, self.space_size, g=2)
                 self.listeWigner.append(wig)
         for ii in range(len(self.listeWigner)):
             self.axes[ii//self.nbCols, ii%self.nbCols].pcolor(self.space_size, self.space_size, self.listeWigner[ii], cmap='bwr', vmin=[-2/np.pi, 2/np.pi])
