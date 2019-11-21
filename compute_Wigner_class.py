@@ -21,7 +21,7 @@ class compute_Wigner:
         self.syst = syst # -1 for 1 cat and k to identify when there are more than k+1 cats
         self.spacing = tempsSimul//nbWigner
         
-    def draw_Wigner(self,list_states):
+    def draw_Wigner(self,list_states, title=None): #title is a string
         for ii in range(self.n_t):
             if ii%self.spacing==0 and ii//self.spacing<self.nbWigner+1:
                 if (self.syst<=-1): # Only one Cat
@@ -32,3 +32,8 @@ class compute_Wigner:
         for ii in range(len(self.listeWigner)):
             self.axes[ii//self.nbCols, ii%self.nbCols].pcolor(self.space_size, self.space_size, self.listeWigner[ii], cmap='bwr', vmin=[-2/np.pi, 2/np.pi])
             self.axes[ii//self.nbCols, ii%self.nbCols].set_aspect('equal')
+        if title is None :
+            pass
+        else :
+            self.fig.suptitle(title)
+           

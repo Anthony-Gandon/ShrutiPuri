@@ -13,8 +13,8 @@ from qutip.ui.progressbar import TextProgressBar
 from compute_Wigner_class import compute_Wigner
 
 "Parameters"
-Na=30 # Truncature
-Nb= 30
+Na=10 # Truncature
+Nb= 10
 
 nbWignerPlot = 15
 nbCols=4
@@ -41,21 +41,21 @@ n_b_tensor = qt.tensor(Ia,n_b)
 
 #Parameter of the control
 k2_c = 1 #2 photon dissipation control
-k1_c=k2_c/100 # single-photon loss rate control
-alpha_inf_abs= 3 #alpha stationnary
-alpha= 3 #alpha of initial state
+k1_c=0 # single-photon loss rate control
+alpha_inf_abs= 1.5 #alpha stationnary
+alpha= 1.5 #alpha of initial state
 
 
 #Parameters of the target
 k2_t=1 #2 photon dissipation control
-k1_t=k2_t/100 #single photon loss rate control
-beta_inf_abs=3 #beta stationnary
-beta=3#beta of the initial state
+k1_t=0 #single photon loss rate control
+beta_inf_abs=1.5 #beta stationnary
+beta=1.5#beta of the initial state
 
 
 
 #Parameters of the rotation
-delta = k2_t #speed rate of the rotating pumping
+delta = alpha_inf_abs**2*k2_t/10 #speed rate of the rotating pumping
 T=np.pi /delta #total time of the gate
 division_simus=11
 
@@ -79,9 +79,9 @@ C_beta_minus = C_beta_minus/C_beta_minus.norm()
 "Resolution of the equation by steps "
 n_time_total = 1001 #total number of steps in the simulation
 T=np.pi /delta #total time of the gate
-T1 =T#time when we put on the CNOT gate
+T1 =T/2#time when we put on the CNOT gate
 T2 = T1+T #time when we put off the CNOT gate 
-T_final= T/2 #total time of the simulation
+T_final= T2+T/2 #total time of the simulation
 
 #We resolve the equation by step 
 #step I : from 0 to T1 : without CNOT
@@ -101,6 +101,8 @@ else:
     tlist1=np.linspace(0,T1,101) # Pbm : there is not the same delta time of points in the different timelist
     #Operators
     cops1=[k1_c**0.5*a_tensor, k2_c**0.5*(a_tensor**2-alpha_inf_abs**2*I_tensor),k1_t**0.5*b_tensor, k2_t**0.5*(b_tensor**2-beta_inf_abs**2*I_tensor)]
+    cops1=[k1_c**0.5*a_tensor, k1_t**0.5*b_tensor, k2_t**0.5*(b_tensor**2-beta_inf_abs**2*I_tensor)]
+
     H1=0*a_tensor+0*b_tensor
     
     res1 = qt.mesolve(H1, qt.tensor(init_state_C,init_state_T), tlist1, cops1, progress_bar=TextProgressBar())
@@ -118,8 +120,10 @@ if T_final>T1:
         tlist_current=np.linspace(t_current, t_current+T/(division_simus-1),101)
         current_op_C=k2_c**0.5*(a_tensor**2-alpha_inf_abs**2*I_tensor)
         current_op_T=k2_t**0.5*(b_tensor**2-alpha_inf_abs**2*I_tensor)
-        current_op_T=k2_t**0.5*(b_tensor**2-1./2*alpha_inf_abs*(a_tensor+alpha_inf_abs*I_tensor)+1./2*np.exp(2*1j*np.pi/T*t_current)*alpha_inf_abs*(a_tensor-alpha_inf_abs*I_tensor))
+        current_op_T=k2_t**0.5*(b_tensor**2-1./2*alpha_inf_abs*(a_tensor+alpha_inf_abs*I_tensor)+1./2*np.exp(2*1j*np.pi/T*(t_current-T1))*alpha_inf_abs*(a_tensor-alpha_inf_abs*I_tensor))
         cops2=[k1_c**0.5*a_tensor,k1_t**0.5*b_tensor, current_op_C, current_op_T]
+        cops2=[k1_c**0.5*a_tensor,k1_t**0.5*b_tensor, current_op_T]
+
         H2=0*a_tensor+0*b_tensor
         res_current=qt.mesolve(H2, init_state_tensor, tlist_current, cops2, progress_bar=TextProgressBar())
         init_state_tensor=res_current.states[-1]
@@ -139,6 +143,7 @@ else:
     init_state_tensor=res2_states[-1]
     tlist3=np.linspace(T2,T_final,101)
     cops1=[k1_c**0.5*a_tensor, k2_c**0.5*(a_tensor**2-alpha_inf_abs**2*I_tensor),k1_t**0.5*b_tensor, k2_t**0.5*(b_tensor**2-beta_inf_abs**2*I_tensor)]
+    cops1=[k1_c**0.5*a_tensor, k1_t**0.5*b_tensor, k2_t**0.5*(b_tensor**2-beta_inf_abs**2*I_tensor)]
     H1=0*a_tensor+0*b_tensor
     res3 = qt.mesolve(H1, init_state_tensor, tlist3, cops1, progress_bar=TextProgressBar())
     res3_states=res3.states
@@ -153,6 +158,8 @@ time_list=list(tlist1)+tlist2+list(tlist3)
 
 
 "Wigner"
+Wigner_control=compute_Wigner([-5, 5, 51], nbWignerPlot,nbCols, len(time_list),0)
+Wigner_control.draw_Wigner(res_states)
 test_Wigner = compute_Wigner([-5, 5, 51], nbWignerPlot,nbCols, len(time_list),1)
 test_Wigner.draw_Wigner(res_states)
 

@@ -14,18 +14,18 @@ from qutip.ui.progressbar import TextProgressBar
 from compute_Wigner_class import compute_Wigner
 
 "Parameters"
-Na=80 # Truncature
+Na=30 # Truncature
 
 k2 = 1 # k2 comes from the combination of g2 and kb
 k1=k2/10 # single-photon loss rate
-alpha_inf_abs= 5 #alpha stationnary
+alpha_inf_abs= 2 #alpha stationnary
 delta = k2 #speed rate of the rotating pumping
-alpha= 5 #alpha of initial state
+alpha= 2 #alpha of initial state
 
 T=np.pi /delta 
 tau=T/10
-T1 = T/2
-T2 = 3*T/2
+T1 =T/2
+T2 =3*T/2
 
 nbWignerPlot = 15
 nbCols=4
@@ -108,14 +108,14 @@ if True:
     cops=[k1**0.5*a,k2**0.5*a**2]
     
     "Resolution of the equation over time with mesolve"
-    init_state=C_alpha_plus#initial state
+    init_state=qt.coherent(Na, alpha) #initial state
     n_t = 1001
     T=np.pi /delta #total time of simulation
     tlist = np.linspace(0, T2+T/2, n_t)
     res = qt.mesolve(H, init_state, tlist, cops, progress_bar=TextProgressBar())
-    
+#    
     #Wigner
-    test_Wigner = compute_Wigner([-10, 10, 51], nbWignerPlot,nbCols, n_t,-1)
+    test_Wigner = compute_Wigner([-4, 4, 51], nbWignerPlot,nbCols, n_t,-1)
     test_Wigner.draw_Wigner(res.states)
     
     "Plot the evolution of fidelity over time"
@@ -123,7 +123,7 @@ if True:
     fidelity_list=[]
     final_state=(1j*np.pi*a.dag()*a).expm()*init_state #for rotation of speed angle T 
     for ii,t in enumerate(tlist):
-        current_theta=delta*(t-T1)*(t>T1 and t<T2)
+        current_theta=2*delta*(t-T1)*(t>T1 and t<T2)
         state_rot= (-1j*current_theta*a.dag()*a).expm()*init_state
         state_rot=state_rot/state_rot.norm()
         target_res.append(state_rot)
@@ -132,10 +132,13 @@ if True:
      
     #Wigner of target res
     target_Wigner= compute_Wigner([-4,4,51], nbWignerPlot, nbCols, n_t,-1)
-    target_Wigner.draw_Wigner(target_res)
+    target_Wigner.draw_Wigner(target_res,"Rotated states")
     #
     fig,axs= plt.subplots()
-    exp_list=np.exp(-tlist*2*alpha_inf_abs**2*k1)*(1-np.sqrt(2)/2)+np.sqrt(2)/2
+    #calculation gives fidelity
+    exp_list=np.sqrt(1-np.exp(-alpha_inf_abs**2*1./2*np.exp(-4*alpha_inf_abs**2)*tlist))
+#    exp_list=1-np.sqrt(tlist*alpha_inf_abs**2*k1)
+#    exp_list=np.exp(-tlist*alpha_inf_abs**2*k1)*(1-np.sqrt(2)/2)+np.sqrt(2)/2
     axs.plot(tlist,fidelity_list,'+')
     axs.plot(tlist,exp_list,'+')
     axs.text(9./5*T,1,str(fidelity_list[0]-fidelity_list[-1]))
